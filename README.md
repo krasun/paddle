@@ -63,34 +63,34 @@ if err != nil {
 }
 
 func handlePaddleWebhooks(webhooks *paddle.Webhooks, payments *payments) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
+    return func(w http.ResponseWriter, r *http.Request) {
+        ctx := r.Context()
 
-		alert, err := webhooks.ParseRequest(r)
-		if err != nil {
-			log.Error(err)
-			http.Error(w, "Sorry, something went wrong", http.StatusInternalServerError)
-			return
-		}
+        alert, err := webhooks.ParseRequest(r)
+        if err != nil {
+            log.Error(err)
+            http.Error(w, "Sorry, something went wrong", http.StatusInternalServerError)
+            return
+        }
 
-		switch alert := alert.(type) {
+        switch alert := alert.(type) {
         // ... 
-		case *paddle.SubscriptionCreatedAlert:
-			err := payments.processSubscriptionCreated(ctx, alert)
-			if err != nil {
-				log.Error(err)
-				http.Error(w, "Sorry, something went wrong", http.StatusInternalServerError)
-				return
-			}
-		case *paddle.SubscriptionUpdatedAlert:
+        case *paddle.SubscriptionCreatedAlert:
+            err := payments.processSubscriptionCreated(ctx, alert)
+            if err != nil {
+                log.Error(err)
+                http.Error(w, "Sorry, something went wrong", http.StatusInternalServerError)
+                return
+            }
+        case *paddle.SubscriptionUpdatedAlert:
             // ... 
-			return
-		case *paddle.SubscriptionCancelledAlert:
-			// ... 
-			return
+            return
+        case *paddle.SubscriptionCancelledAlert:
+            // ... 
+            return
         // ...
-		}
-	}
+        }
+    }
 }
 ```
 
