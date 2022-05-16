@@ -13,6 +13,56 @@ import (
 	"testing"
 )
 
+func TestUsersListOnFailure(t *testing.T) {
+	expectedResponse := &http.Response{
+		StatusCode: 200,
+		Body:       ioutil.NopCloser(bytes.NewBuffer([]byte(usersListErrorJSON))),
+		Header:     make(http.Header),
+	}
+	httpClient := newHTTPClient(func(req *http.Request) (*http.Response, error) {
+		return expectedResponse, nil
+	})
+
+	u, _ := url.Parse(sandboxBaseURL)
+	users := Users{httpClient: httpClient, baseURL: u, authentication: &Authentication{42, "123abc"}}
+
+	result, _, err := users.List(context.Background(), &ListUsersOptions{})
+
+	equals(t, err, &APIError{102, "Bad api key"})
+	var actual []*User
+	equals(t, result, actual)
+}
+
+func TestUsersListOnSuccess(t *testing.T) {
+	expectedResponse := &http.Response{
+		StatusCode: 200,
+		Body:       ioutil.NopCloser(bytes.NewBuffer([]byte(usersListJSON))),
+		Header:     make(http.Header),
+	}
+	httpClient := newHTTPClient(func(req *http.Request) (*http.Response, error) {
+		return expectedResponse, nil
+	})
+
+	u, _ := url.Parse(sandboxBaseURL)
+	users := Users{httpClient: httpClient, baseURL: u, authentication: &Authentication{42, "123abc"}}
+
+	result, actualResponse, err := users.List(context.Background(), &ListUsersOptions{})
+	ok(t, err)
+
+	equals(t, expectedResponse, actualResponse)
+
+	equals(t, 2, len(result))
+}
+
+const usersListErrorJSON = `{
+    "success": false,
+    "error": {
+        "code": 102,
+        "message": "Bad api key"
+    }
+}    
+`
+
 const usersListJSON = `{
     "success": true,
     "response": [
@@ -71,27 +121,6 @@ const usersListJSON = `{
     ]
 }
 `
-
-func TestUsersListOnSuccess(t *testing.T) {
-	expectedResponse := &http.Response{
-		StatusCode: 200,
-		Body:       ioutil.NopCloser(bytes.NewBuffer([]byte(usersListJSON))),
-		Header:     make(http.Header),
-	}
-	httpClient := newHTTPClient(func(req *http.Request) (*http.Response, error) {
-		return expectedResponse, nil
-	})
-
-	u, _ := url.Parse(sandboxBaseURL)
-	users := Users{httpClient: httpClient, baseURL: u, authentication: &Authentication{42, "123abc"}}
-
-	result, actualResponse, err := users.List(context.Background(), &ListUsersOptions{})
-	ok(t, err)
-
-	equals(t, expectedResponse, actualResponse)
-
-	equals(t, 2, len(result))
-}
 
 // ok fails the test if an err is not nil.
 func ok(tb testing.TB, err error) {
