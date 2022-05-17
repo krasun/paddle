@@ -13,6 +13,24 @@ import (
 	"testing"
 )
 
+func TestUsersCancelOnFailure(t *testing.T) {
+	expectedResponse := &http.Response{
+		StatusCode: 200,
+		Body:       ioutil.NopCloser(bytes.NewBuffer([]byte(usersListErrorJSON))),
+		Header:     make(http.Header),
+	}
+	httpClient := newHTTPClient(func(req *http.Request) (*http.Response, error) {
+		return expectedResponse, nil
+	})
+
+	u, _ := url.Parse(sandboxBaseURL)
+	users := Users{httpClient: httpClient, baseURL: u, authentication: &Authentication{42, "123abc"}}
+
+	_, err := users.Cancel(context.Background(), &CancelUserOptions{42})
+
+	equals(t, err, &APIError{102, "Bad api key"})
+}
+
 func TestUsersListOnFailure(t *testing.T) {
 	expectedResponse := &http.Response{
 		StatusCode: 200,
