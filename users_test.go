@@ -13,10 +13,47 @@ import (
 	"testing"
 )
 
-func TestUsersCancelOnFailure(t *testing.T) {
+func TestUsersUpdateOnAPIError(t *testing.T) {
 	expectedResponse := &http.Response{
 		StatusCode: 200,
-		Body:       ioutil.NopCloser(bytes.NewBuffer([]byte(usersListErrorJSON))),
+		Body:       ioutil.NopCloser(bytes.NewBuffer([]byte(usersUpdateErrorJSON))),
+		Header:     make(http.Header),
+	}
+	httpClient := newHTTPClient(func(req *http.Request) (*http.Response, error) {
+		return expectedResponse, nil
+	})
+
+	u, _ := url.Parse(sandboxBaseURL)
+	users := Users{httpClient: httpClient, baseURL: u, authentication: &Authentication{42, "123abc"}}
+
+	_, _, err := users.Update(context.Background(), &UpdateUserOptions{42, 42, true, true})
+	equals(t, err, &APIError{102, "Bad api key"})
+}
+
+func TestUsersUpdateOnSuccess(t *testing.T) {
+	expectedResponse := &http.Response{
+		StatusCode: 200,
+		Body:       ioutil.NopCloser(bytes.NewBuffer([]byte(usersUpdateJSON))),
+		Header:     make(http.Header),
+	}
+	httpClient := newHTTPClient(func(req *http.Request) (*http.Response, error) {
+		return expectedResponse, nil
+	})
+
+	u, _ := url.Parse(sandboxBaseURL)
+	users := Users{httpClient: httpClient, baseURL: u, authentication: &Authentication{42, "123abc"}}
+
+	result, actualResponse, err := users.Update(context.Background(), &UpdateUserOptions{42, 42, true, true})
+
+	ok(t, err)
+	equals(t, expectedResponse, actualResponse)
+	equals(t, &UpdateUserResponse{12345, 525123, 425123, &UserPayment{144.06, "GBP", "2018-02-15"}}, result)
+}
+
+func TestUsersCancelOnAPIError(t *testing.T) {
+	expectedResponse := &http.Response{
+		StatusCode: 200,
+		Body:       ioutil.NopCloser(bytes.NewBuffer([]byte(usersCancelErrorJSON))),
 		Header:     make(http.Header),
 	}
 	httpClient := newHTTPClient(func(req *http.Request) (*http.Response, error) {
@@ -31,7 +68,24 @@ func TestUsersCancelOnFailure(t *testing.T) {
 	equals(t, err, &APIError{102, "Bad api key"})
 }
 
-func TestUsersListOnFailure(t *testing.T) {
+func TestUsersCancelOnSuccess(t *testing.T) {
+	expectedResponse := &http.Response{
+		StatusCode: 200,
+		Body:       ioutil.NopCloser(bytes.NewBuffer([]byte(usersCancelJSON))),
+		Header:     make(http.Header),
+	}
+	httpClient := newHTTPClient(func(req *http.Request) (*http.Response, error) {
+		return expectedResponse, nil
+	})
+
+	u, _ := url.Parse(sandboxBaseURL)
+	users := Users{httpClient: httpClient, baseURL: u, authentication: &Authentication{42, "123abc"}}
+
+	_, err := users.Cancel(context.Background(), &CancelUserOptions{42})
+	ok(t, err)
+}
+
+func TestUsersListOnAPIError(t *testing.T) {
 	expectedResponse := &http.Response{
 		StatusCode: 200,
 		Body:       ioutil.NopCloser(bytes.NewBuffer([]byte(usersListErrorJSON))),
@@ -80,6 +134,40 @@ const usersListErrorJSON = `{
     }
 }    
 `
+
+const usersUpdateErrorJSON = `{
+    "success": false,
+    "error": {
+        "code": 102,
+        "message": "Bad api key"
+    }
+}    
+`
+const usersUpdateJSON = `{
+	"success": true,
+	"response": {
+		"subscription_id": 12345,
+		"user_id": 425123,
+		"plan_id": 525123,
+		"next_payment": {
+		"amount": 144.06,
+		"currency": "GBP",
+			"date": "2018-02-15"
+		}
+	}
+}`
+
+const usersCancelJSON = `{
+    "success": true
+}`
+
+const usersCancelErrorJSON = `{
+    "success": false,
+    "error": {
+        "code": 102,
+        "message": "Bad api key"
+    }
+}`
 
 const usersListJSON = `{
     "success": true,
