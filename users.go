@@ -166,6 +166,8 @@ func (options *CancelUserOptions) encodeURLValues() (url.Values, error) {
 	values := make(url.Values)
 	if options.SubscriptionID != 0 {
 		values.Set("subscription_id", strconv.FormatUint(options.SubscriptionID, 10))
+	} else {
+		return nil, errors.New("\"subscription_id\" is required")
 	}
 
 	return values, nil

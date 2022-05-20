@@ -80,6 +80,17 @@ func TestUsersCancelOnAPIError(t *testing.T) {
 	equals(t, err, &APIError{102, "Bad api key"})
 }
 
+func TestUsersCancelOnValidationError(t *testing.T) {
+	httpClient := newHTTPClient(func(req *http.Request) (*http.Response, error) {
+		return nil, nil
+	})
+	u, _ := url.Parse(sandboxBaseURL)
+	users := Users{httpClient: httpClient, baseURL: u, authentication: &Authentication{42, "123abc"}}
+
+	_, err := users.Cancel(context.Background(), &CancelUserOptions{})
+	errorred(t, err, "\"subscription_id\" is required")
+}
+
 func TestUsersCancelOnSuccess(t *testing.T) {
 	expectedResponse := &http.Response{
 		StatusCode: 200,
