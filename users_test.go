@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"runtime"
+	"strings"
 	"testing"
 )
 
@@ -28,6 +29,17 @@ func TestUsersUpdateOnAPIError(t *testing.T) {
 
 	_, _, err := users.Update(context.Background(), &UpdateUserOptions{42, 42, true, true})
 	equals(t, err, &APIError{102, "Bad api key"})
+}
+
+func TestUsersUpdateOnValidationError(t *testing.T) {
+	httpClient := newHTTPClient(func(req *http.Request) (*http.Response, error) {
+		return nil, nil
+	})
+	u, _ := url.Parse(sandboxBaseURL)
+	users := Users{httpClient: httpClient, baseURL: u, authentication: &Authentication{42, "123abc"}}
+
+	_, _, err := users.Update(context.Background(), &UpdateUserOptions{})
+	errorred(t, err, "\"subscription_id\" is required")
 }
 
 func TestUsersUpdateOnSuccess(t *testing.T) {
@@ -227,6 +239,23 @@ const usersListJSON = `{
     ]
 }
 `
+
+// errorred fails the test if an err is nil or message is not found in the message string.
+func errorred(tb testing.TB, err error, message string) {
+	if err == nil {
+		_, file, line, _ := runtime.Caller(1)
+		fmt.Printf("\033[31m%s:%d: expected error, but got nil\033[39m\n\n", filepath.Base(file), line)
+		tb.FailNow()
+		return
+	}
+
+	if !strings.Contains(err.Error(), message) {
+		_, file, line, _ := runtime.Caller(1)
+		fmt.Printf("\033[31m%s:%d: \"%s\" not found in \"%s\"\033[39m\n\n", filepath.Base(file), line, message, err.Error())
+		tb.FailNow()
+		return
+	}
+}
 
 // ok fails the test if an err is not nil.
 func ok(tb testing.TB, err error) {

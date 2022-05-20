@@ -2,6 +2,7 @@ package paddle
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -111,7 +112,10 @@ func (options *UpdateUserOptions) encodeURLValues() (url.Values, error) {
 	values := make(url.Values)
 	if options.SubscriptionID != 0 {
 		values.Set("subscription_id", strconv.FormatUint(options.SubscriptionID, 10))
+	} else {
+		return nil, errors.New("\"subscription_id\" is required")
 	}
+
 	if options.PlanID != 0 {
 		values.Set("plan_id", strconv.FormatUint(options.PlanID, 10))
 	}
