@@ -108,6 +108,17 @@ func TestUsersCancelOnSuccess(t *testing.T) {
 	ok(t, err)
 }
 
+func TestUsersListOnValidationError(t *testing.T) {
+	httpClient := newHTTPClient(func(req *http.Request) (*http.Response, error) {
+		return nil, nil
+	})
+	u, _ := url.Parse(sandboxBaseURL)
+	users := Users{httpClient: httpClient, baseURL: u, authentication: &Authentication{42, "123abc"}}
+
+	_, _, err := users.List(context.Background(), &ListUsersOptions{State: "invalid"})
+	errorred(t, err, "\"status\" must be empty or one of")
+}
+
 func TestUsersListOnAPIError(t *testing.T) {
 	expectedResponse := &http.Response{
 		StatusCode: 200,

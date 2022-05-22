@@ -30,9 +30,20 @@ func (options *ListUsersOptions) encodeURLValues() (url.Values, error) {
 	if options.PlanID != 0 {
 		values.Set("plan_id", strconv.FormatUint(options.PlanID, 10))
 	}
-	if options.State != "" {
+
+	switch options.State {
+	case "active":
+	case "past_due":
+	case "trialing":
+	case "paused":
+	case "deleted":
 		values.Set("state", options.State)
+	case "":
+		break
+	default:
+		return nil, fmt.Errorf("\"status\" must be empty or one of \"active\", \"past_due\", \"trialing\", \"paused\", \"deleted\"")
 	}
+
 	if options.Page > 0 {
 		values.Set("page", strconv.Itoa(options.Page))
 	}
