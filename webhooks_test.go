@@ -3,9 +3,64 @@ package paddle
 import (
 	"encoding/base64"
 	"net/http"
+	"net/url"
 	"strings"
 	"testing"
 )
+
+func TestWebhooksErrorsOnInvalidHeader(t *testing.T) {
+	publicKey, err := base64.StdEncoding.DecodeString(publicKeyEncoded)
+	if err != nil {
+		t.Fatalf("failed to parse public key: %s", err)
+		return
+	}
+
+	webhooks, err := NewWebhooks(publicKey)
+	if err != nil {
+		t.Fatalf("failed to instantiate webhooks: %s", err)
+		return
+	}
+
+	r, err := http.NewRequest("POST", "https://example.com/hooks", strings.NewReader(subscriptionPaymentSucceededPostBody))
+	if err != nil {
+		t.Fatalf("failed to instantiate new request: %s", err)
+		return
+	}
+
+	_, err = webhooks.ParseRequest(r)
+	errorred(t, err, "webhook request has unsupported")
+}
+
+func TestWebhooksErrorsOnBrokenSignature(t *testing.T) {
+	publicKey, err := base64.StdEncoding.DecodeString(publicKeyEncoded)
+	if err != nil {
+		t.Fatalf("failed to parse public key: %s", err)
+		return
+	}
+
+	webhooks, err := NewWebhooks(publicKey)
+	if err != nil {
+		t.Fatalf("failed to instantiate webhooks: %s", err)
+		return
+	}
+
+	query, err := url.ParseQuery(subscriptionPaymentSucceededPostBody)
+	if err != nil {
+		t.Fatalf("failed to parse query string: %s", err)
+		return
+	}
+	query.Set("p_signature", "invalid signature")
+
+	r, err := http.NewRequest("POST", "https://example.com/hooks", strings.NewReader(query.Encode()))
+	if err != nil {
+		t.Fatalf("failed to instantiate new request: %s", err)
+		return
+	}
+	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	_, err = webhooks.ParseRequest(r)
+	errorred(t, err, "failed to decode the signature")
+}
 
 func TestSubscriptionPaymentSucceededIsParsed(t *testing.T) {
 	publicKey, err := base64.StdEncoding.DecodeString(publicKeyEncoded)
