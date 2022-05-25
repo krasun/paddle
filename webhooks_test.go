@@ -31,7 +31,7 @@ func TestWebhooksErrorsOnInvalidHeader(t *testing.T) {
 	errorred(t, err, "webhook request has unsupported")
 }
 
-func TestWebhooksErrorsOnBrokenSignature(t *testing.T) {
+func TestWebhooksErrorsOnBrokenSignatureEncoding(t *testing.T) {
 	publicKey, err := base64.StdEncoding.DecodeString(publicKeyEncoded)
 	if err != nil {
 		t.Fatalf("failed to parse public key: %s", err)
@@ -60,6 +60,37 @@ func TestWebhooksErrorsOnBrokenSignature(t *testing.T) {
 
 	_, err = webhooks.ParseRequest(r)
 	errorred(t, err, "failed to decode the signature")
+}
+
+func TestWebhooksErrorsOnBrokenSignatureValue(t *testing.T) {
+	publicKey, err := base64.StdEncoding.DecodeString(publicKeyEncoded)
+	if err != nil {
+		t.Fatalf("failed to parse public key: %s", err)
+		return
+	}
+
+	webhooks, err := NewWebhooks(publicKey)
+	if err != nil {
+		t.Fatalf("failed to instantiate webhooks: %s", err)
+		return
+	}
+
+	query, err := url.ParseQuery(subscriptionPaymentSucceededPostBody)
+	if err != nil {
+		t.Fatalf("failed to parse query string: %s", err)
+		return
+	}
+	query.Set("p_signature", base64.StdEncoding.EncodeToString([]byte("invalid signature")))
+
+	r, err := http.NewRequest("POST", "https://example.com/hooks", strings.NewReader(query.Encode()))
+	if err != nil {
+		t.Fatalf("failed to instantiate new request: %s", err)
+		return
+	}
+	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	_, err = webhooks.ParseRequest(r)
+	errorred(t, err, "failed to verify the signature")
 }
 
 func TestSubscriptionPaymentSucceededIsParsed(t *testing.T) {
