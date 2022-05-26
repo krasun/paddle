@@ -3,14 +3,9 @@ package paddle
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"path/filepath"
-	"reflect"
-	"runtime"
-	"strings"
 	"testing"
 )
 
@@ -78,6 +73,24 @@ func TestUsersCancelOnAPIError(t *testing.T) {
 	_, err := users.Cancel(context.Background(), &CancelUserOptions{42})
 
 	equals(t, err, &APIError{102, "Bad api key"})
+}
+
+func TestUsersCancelOnBrokenJSON(t *testing.T) {
+	expectedResponse := &http.Response{
+		StatusCode: 200,
+		Body:       ioutil.NopCloser(bytes.NewBuffer([]byte(usersCancelBrokenJSON))),
+		Header:     make(http.Header),
+	}
+	httpClient := newHTTPClient(func(req *http.Request) (*http.Response, error) {
+		return expectedResponse, nil
+	})
+
+	u, _ := url.Parse(sandboxBaseURL)
+	users := Users{httpClient: httpClient, baseURL: u, authentication: &Authentication{42, "123abc"}}
+
+	_, err := users.Cancel(context.Background(), &CancelUserOptions{42})
+
+	errorred(t, err, "failed to unmarshal JSON")
 }
 
 func TestUsersCancelOnValidationError(t *testing.T) {
@@ -203,6 +216,12 @@ const usersCancelErrorJSON = `{
     }
 }`
 
+const usersCancelBrokenJSON = `{
+    "success": false,
+    "error": {Bad api key"
+    }
+}`
+
 const usersListJSON = `{
     "success": true,
     "response": [
@@ -261,41 +280,6 @@ const usersListJSON = `{
     ]
 }
 `
-
-// errorred fails the test if an err is nil or message is not found in the message string.
-func errorred(tb testing.TB, err error, message string) {
-	if err == nil {
-		_, file, line, _ := runtime.Caller(1)
-		fmt.Printf("\033[31m%s:%d: expected error, but got nil\033[39m\n\n", filepath.Base(file), line)
-		tb.FailNow()
-		return
-	}
-
-	if !strings.Contains(err.Error(), message) {
-		_, file, line, _ := runtime.Caller(1)
-		fmt.Printf("\033[31m%s:%d: \"%s\" not found in \"%s\"\033[39m\n\n", filepath.Base(file), line, message, err.Error())
-		tb.FailNow()
-		return
-	}
-}
-
-// ok fails the test if an err is not nil.
-func ok(tb testing.TB, err error) {
-	if err != nil {
-		_, file, line, _ := runtime.Caller(1)
-		fmt.Printf("\033[31m%s:%d: unexpected error: %s\033[39m\n\n", filepath.Base(file), line, err.Error())
-		tb.FailNow()
-	}
-}
-
-// equals fails the test if exp is not equal to act.
-func equals(tb testing.TB, exp, act interface{}) {
-	if !reflect.DeepEqual(exp, act) {
-		_, file, line, _ := runtime.Caller(1)
-		fmt.Printf("\033[31m%s:%d:\n\n\texp: %#v\n\n\tgot: %#v\033[39m\n\n", filepath.Base(file), line, exp, act)
-		tb.FailNow()
-	}
-}
 
 type roundTripper func(req *http.Request) (*http.Response, error)
 
