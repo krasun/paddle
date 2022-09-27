@@ -34,6 +34,19 @@ const (
 	SubscriptionDeleted SubscriptionStatus = "deleted"
 )
 
+// RefundType represents refund type: full, vat or partial.
+type RefundType string
+
+const (
+	refundUnknown RefundType = "unknown"
+	// RefundFull represents full refund.
+	RefundFull RefundType = "full"
+	// RefundVAT represents VAT refund.
+	RefundVAT RefundType = "vat"
+	// RefundPartial represents partial refund.
+	RefundPartial RefundType = "partial"
+)
+
 // Webhooks validates and parses webhook alerts.
 type Webhooks struct {
 	signKey *rsa.PublicKey
@@ -61,6 +74,7 @@ func NewWebhooks(publicKey []byte) (*Webhooks, error) {
 	decoder.IgnoreUnknownKeys(true)
 	decoder.RegisterConverter(time.Time{}, convertTime)
 	decoder.RegisterConverter(subscriptionUnknown, convertSubscriptionStatus)
+	decoder.RegisterConverter(refundUnknown, convertRefundType)
 
 	return &Webhooks{signKey: signKey, decoder: decoder}, nil
 }
@@ -94,6 +108,19 @@ func convertSubscriptionStatus(value string) reflect.Value {
 	return reflect.Value{}
 }
 
+func convertRefundType(value string) reflect.Value {
+	switch value {
+	case "full":
+		return reflect.ValueOf(RefundFull)
+	case "vat":
+		return reflect.ValueOf(RefundVAT)
+	case "partial":
+		return reflect.ValueOf(RefundPartial)
+	}
+
+	return reflect.Value{}
+}
+
 // ParseRequest validates the Paddle webhook request and returns typed alert in case of success,
 // otherwise it returns an error.
 func (webhooks *Webhooks) ParseRequest(r *http.Request) (interface{}, error) {
@@ -107,6 +134,11 @@ func (webhooks *Webhooks) ParseRequest(r *http.Request) (interface{}, error) {
 
 	signature, err := base64.StdEncoding.DecodeString(r.Form.Get("p_signature"))
 	if err != nil {
+		fmt.Println("signature")
+		fmt.Println(r.Form.Get("p_signature"))
+		fmt.Println("signature")
+		
+
 		return nil, fmt.Errorf("failed to decode the signature: %w", err)
 	}
 	r.Form.Del("p_signature")
@@ -145,6 +177,7 @@ func (webhooks *Webhooks) ParseRequest(r *http.Request) (interface{}, error) {
 	case "subscription_payment_failed":
 		alert = &SubscriptionPaymentFailedAlert{}
 	case "subscription_payment_refunded":
+		alert = &SubscriptionPaymentRefundedAlert{}
 	case "payment_succeeded":
 	case "payment_refunded":
 	case "locker_processed":
