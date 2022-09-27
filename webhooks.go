@@ -141,11 +141,12 @@ func (webhooks *Webhooks) ParseRequest(r *http.Request) (interface{}, error) {
 
 		return nil, fmt.Errorf("failed to decode the signature: %w", err)
 	}
-	r.Form.Del("p_signature")
 
 	var keys []string
 	for key := range r.Form {
-		keys = append(keys, key)
+		if key != "p_signature" {
+			keys = append(keys, key)
+		}
 	}
 	sort.Strings(keys)
 
