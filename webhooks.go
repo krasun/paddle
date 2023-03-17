@@ -72,6 +72,7 @@ func NewWebhooks(publicKey []byte) (*Webhooks, error) {
 
 	decoder := schema.NewDecoder()
 	decoder.IgnoreUnknownKeys(true)
+	decoder.ZeroEmpty(true)
 	decoder.RegisterConverter(time.Time{}, convertTime)
 	decoder.RegisterConverter(subscriptionUnknown, convertSubscriptionStatus)
 	decoder.RegisterConverter(refundUnknown, convertRefundType)
