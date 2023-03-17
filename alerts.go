@@ -120,28 +120,28 @@ type SubscriptionCancelledAlert struct {
 // SubscriptionPaymentFailedAlert is fired when a payment for an existing subscription fails.
 // Docs: https://developer.paddle.com/webhook-reference/subscription-alerts/subscription-payment-failed
 type SubscriptionPaymentFailedAlert struct {
-	AlertName             string    `schema:"alert_name"`
-	AlertID               uint64    `schema:"alert_id"`
-	Amount                *string   `schema:"amount"`
-	CancelURL             string    `schema:"cancel_url"`
-	CheckoutID            *string   `schema:"checkout_id"`
-	Currency              *string   `schema:"currency"`
-	Email                 *string   `schema:"email"`
-	EventTime             time.Time `schema:"event_time"`
-	MarketingConsent      bool      `schema:"marketing_consent"`
-	NextRetryDate         time.Time `schema:"next_retry_date"`
-	Passthrough           *string   `schema:"passthrough"`
-	Quantity              *string   `schema:"quantity"`
-	Status                *string   `schema:"status"`
-	SubscriptionID        uint64    `schema:"subscription_id"`
-	SubscriptionPlanID    uint64    `schema:"subscription_plan_id"`
-	UnitPrice             *string   `schema:"unit_price"`
-	UpdateURL             string    `schema:"update_url"`
-	SubscriptionPaymentID uint64    `schema:"subscription_payment_id"`
-	Instalments           int       `schema:"instalments"`
-	OrderID               *string   `schema:"order_id"`
-	UserID                uint64    `schema:"user_id"`
-	AttemptNumber         *string   `schema:"attempt_number"`
+	AlertName             string     `schema:"alert_name"`
+	AlertID               uint64     `schema:"alert_id"`
+	Amount                *string    `schema:"amount"`
+	CancelURL             string     `schema:"cancel_url"`
+	CheckoutID            *string    `schema:"checkout_id"`
+	Currency              *string    `schema:"currency"`
+	Email                 *string    `schema:"email"`
+	EventTime             time.Time  `schema:"event_time"`
+	MarketingConsent      bool       `schema:"marketing_consent"`
+	NextRetryDate         *time.Time `schema:"next_retry_date"`
+	Passthrough           *string    `schema:"passthrough"`
+	Quantity              *string    `schema:"quantity"`
+	Status                *string    `schema:"status"`
+	SubscriptionID        uint64     `schema:"subscription_id"`
+	SubscriptionPlanID    uint64     `schema:"subscription_plan_id"`
+	UnitPrice             *string    `schema:"unit_price"`
+	UpdateURL             string     `schema:"update_url"`
+	SubscriptionPaymentID uint64     `schema:"subscription_payment_id"`
+	Instalments           int        `schema:"instalments"`
+	OrderID               *string    `schema:"order_id"`
+	UserID                uint64     `schema:"user_id"`
+	AttemptNumber         *string    `schema:"attempt_number"`
 }
 
 // SubscriptionPaymentRefundedAlert is fired when a refund for an existing subscription is issued.
