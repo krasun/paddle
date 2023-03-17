@@ -72,15 +72,31 @@ func NewWebhooks(publicKey []byte) (*Webhooks, error) {
 
 	decoder := schema.NewDecoder()
 	decoder.IgnoreUnknownKeys(true)
-	decoder.ZeroEmpty(true)
 	decoder.RegisterConverter(time.Time{}, convertTime)
+	decoder.RegisterConverter(OptionalTime{}, convertOptionalTime)
 	decoder.RegisterConverter(subscriptionUnknown, convertSubscriptionStatus)
 	decoder.RegisterConverter(refundUnknown, convertRefundType)
 
 	return &Webhooks{signKey: signKey, decoder: decoder}, nil
 }
 
-func convertTime(value string) reflect.Value {
+func convertOptionalTime(value string) reflect.Value {
+	if value == "" {
+		return reflect.ValueOf(OptionalTime{})
+	}
+
+	if v, err := time.Parse("2006-01-02", value); err == nil {
+		return reflect.ValueOf(v)
+	}
+
+	if v, err := time.Parse("2006-01-02 15:04:05", value); err == nil {
+		return reflect.ValueOf(v)
+	}
+
+	return reflect.Value{}
+}
+
+func convertTime(value string) reflect.Value {	
 	if v, err := time.Parse("2006-01-02", value); err == nil {
 		return reflect.ValueOf(v)
 	}
@@ -135,11 +151,6 @@ func (webhooks *Webhooks) ParseRequest(r *http.Request) (interface{}, error) {
 
 	signature, err := base64.StdEncoding.DecodeString(r.Form.Get("p_signature"))
 	if err != nil {
-		fmt.Println("signature")
-		fmt.Println(r.Form.Get("p_signature"))
-		fmt.Println("signature")
-		
-
 		return nil, fmt.Errorf("failed to decode the signature: %w", err)
 	}
 
