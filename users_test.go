@@ -165,7 +165,7 @@ func TestUsersListOnSuccess(t *testing.T) {
 	u, _ := url.Parse(sandboxBaseURL)
 	users := Users{httpClient: httpClient, baseURL: u, authentication: &Authentication{42, "123abc"}}
 
-	result, actualResponse, err := users.List(context.Background(), &ListUsersOptions{})
+	result, actualResponse, err := users.List(context.Background(), &ListUsersOptions{SubscriptionID: 12})
 	ok(t, err)
 
 	equals(t, expectedResponse, actualResponse)

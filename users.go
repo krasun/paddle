@@ -51,7 +51,7 @@ func (options *ListUsersOptions) encodeURLValues() (url.Values, error) {
 		values.Set("results_per_page", strconv.Itoa(options.ResultsPerPage))
 	}
 
-	return url.Values{}, nil
+	return values, nil
 }
 
 // User represents a Paddle user.
