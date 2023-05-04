@@ -86,17 +86,17 @@ func convertOptionalTime(value string) reflect.Value {
 	}
 
 	if v, err := time.Parse("2006-01-02", value); err == nil {
-		return reflect.ValueOf(v)
+		return reflect.ValueOf(OptionalTime{Time: v, Set: true})
 	}
 
 	if v, err := time.Parse("2006-01-02 15:04:05", value); err == nil {
-		return reflect.ValueOf(v)
+		return reflect.ValueOf(OptionalTime{Time: v, Set: true})
 	}
 
 	return reflect.Value{}
 }
 
-func convertTime(value string) reflect.Value {	
+func convertTime(value string) reflect.Value {
 	if v, err := time.Parse("2006-01-02", value); err == nil {
 		return reflect.ValueOf(v)
 	}
