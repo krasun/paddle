@@ -29,8 +29,13 @@ func (options *ChargeOptions) encodeURLValues() (url.Values, error) {
 
 // ChargeResponse represents a response for the subscription charge.
 type ChargeResponse struct {
+	InvoiceID      uint64 `json:"invoice_id,omitempty"`
 	SubscriptionID uint64 `json:"subscription_id,omitempty"`
-	ModifierID     uint64 `json:"modifier_id,omitempty"`
+	Amount         string `json:"amount,omitempty"`
+	Currency       string `json:"currency,omitempty"`
+	PaymentDate    string `json:"payment_date,omitempty"`
+	ReceiptURL     string `json:"receipt_url,omitempty"`
+	Status         string `json:"status,omitempty"`
 }
 
 // Charge charges.

@@ -40,13 +40,8 @@ func (options *CreateModifierOptions) encodeURLValues() (url.Values, error) {
 
 // CreateModifierResponse represents a response for the create subscription modifier.
 type CreateModifierResponse struct {
-	InvoiceID      uint64 `json:"invoice_id,omitempty"`
 	SubscriptionID uint64 `json:"subscription_id,omitempty"`
-	Amount         string `json:"amount,omitempty"`
-	Currency       string `json:"currency,omitempty"`
-	PaymentDate    string `json:"payment_date,omitempty"`
-	ReceiptURL     string `json:"receipt_url,omitempty"`
-	Status         string `json:"status,omitempty"`
+	ModifierID     uint64 `json:"modifier_id,omitempty"`
 }
 
 // Create creates new modifier.
