@@ -116,6 +116,7 @@ type UpdateUserOptions struct {
 	PlanID          uint64
 	Prorate         bool
 	BillImmediately bool
+	KeepModifiers   bool
 }
 
 // encodeURLValues encodes options as URL parameters.
@@ -132,6 +133,7 @@ func (options *UpdateUserOptions) encodeURLValues() (url.Values, error) {
 	}
 	values.Set("prorate", strconv.FormatBool(options.Prorate))
 	values.Set("bill_immediately", strconv.FormatBool(options.BillImmediately))
+	values.Set("keep_modifiers", strconv.FormatBool(options.KeepModifiers))
 
 	return values, nil
 }

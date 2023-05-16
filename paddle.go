@@ -32,6 +32,10 @@ type api struct {
 type Client struct {
 	// Users represents an API for working with subscription users.
 	Users *Users
+	// Modifiers represents an API for working with subscription modifiers.
+	Modifiers *Modifiers
+	// Charges represents an API for working with subscription charges.
+	Charges *Charges
 }
 
 // Authentication represents credentials for working with the Paddle API.
@@ -69,6 +73,8 @@ func newClient(authentication *Authentication, baseURL *url.URL) *Client {
 
 	return &Client{
 		&Users{httpClient: httpClient, baseURL: baseURL, authentication: authentication},
+		&Modifiers{httpClient: httpClient, baseURL: baseURL, authentication: authentication},
+		&Charges{httpClient: httpClient, baseURL: baseURL, authentication: authentication},
 	}
 }
 

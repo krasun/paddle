@@ -22,7 +22,7 @@ func TestUsersUpdateOnAPIError(t *testing.T) {
 	u, _ := url.Parse(sandboxBaseURL)
 	users := Users{httpClient: httpClient, baseURL: u, authentication: &Authentication{42, "123abc"}}
 
-	_, _, err := users.Update(context.Background(), &UpdateUserOptions{42, 42, true, true})
+	_, _, err := users.Update(context.Background(), &UpdateUserOptions{42, 42, true, true, true})
 	equals(t, err, &APIError{102, "Bad api key"})
 }
 
@@ -50,7 +50,7 @@ func TestUsersUpdateOnSuccess(t *testing.T) {
 	u, _ := url.Parse(sandboxBaseURL)
 	users := Users{httpClient: httpClient, baseURL: u, authentication: &Authentication{42, "123abc"}}
 
-	result, actualResponse, err := users.Update(context.Background(), &UpdateUserOptions{42, 42, true, true})
+	result, actualResponse, err := users.Update(context.Background(), &UpdateUserOptions{42, 42, true, true, false})
 
 	ok(t, err)
 	equals(t, expectedResponse, actualResponse)
